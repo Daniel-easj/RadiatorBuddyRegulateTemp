@@ -1,5 +1,3 @@
-
-
 class PiData:
     def __init__(self, id, temperature, location, inDoor, timestamp):
         self.id = id
@@ -8,10 +6,14 @@ class PiData:
         self.inDoor = inDoor
         self.timestamp = timestamp
 
+# Function to initialize PiData objects
+
 
 def create_pidata(id, temperature, location, inDoor, timestamp):
     pidata = PiData(id, temperature, location, inDoor, timestamp)
     return pidata
+
+# Function to display data from PiData object in string format
 
 
 def __str__(self):
