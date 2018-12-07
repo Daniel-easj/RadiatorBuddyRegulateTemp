@@ -1,10 +1,20 @@
 import requests
 import json
 import PiData
+import random
 
 WEATHER_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/weatherdata'
 SENSOR_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/sensorsdata'
 WEATHER_DICT_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/weatherdata/dict'
+
+
+def create_forecast_list():
+    weather_api_request = requests.get(WEATHER_REST_URI)
+    weather_api_dict = json.loads(weather_api_request.text)
+    weather_api_dict == weather_api_request.json()
+    forecast_dictionary = dict()
+    forecast_dictionary = weather_api_dict.copy()
+    return forecast_dictionary
 
 
 # Function to get forecast dictionary
@@ -62,3 +72,7 @@ print(len(sensor_list))
 for element in sensor_list:
     # PiData "ToString()"
     print(PiData.__str__(element))
+
+
+def fake_optimal_temp():
+    return random.randint(20, 24)
