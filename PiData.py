@@ -17,4 +17,4 @@ def create_pidata(id, temperature, location, inDoor, timestamp):
 
 
 def __str__(self):
-    return (f"id : {self.id}, temperature : {self.temperature}, location : {self.location}, inDoor : {self.inDoor}, timestamp : {self.timestamp}")
+    return (f"MAC-address : {self.id}, temperature : {self.temperature}, location : {self.location}, indoor : {self.inDoor}, timestamp : {self.timestamp}")

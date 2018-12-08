@@ -1,30 +1,19 @@
 import requests
 import json
 import PiData
+import WeatherData
 import random
+from datetime import datetime
 
 WEATHER_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/weatherdata'
 SENSOR_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/sensorsdata'
-WEATHER_DICT_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/weatherdata/dict'
+
+# Function to fake optimal temp until real optimal temp can be gathered
 
 
-def create_forecast_list():
-    weather_api_request = requests.get(WEATHER_REST_URI)
-    weather_api_dict = json.loads(weather_api_request.text)
-    weather_api_dict == weather_api_request.json()
-    forecast_dictionary = dict()
-    forecast_dictionary = weather_api_dict.copy()
-    return forecast_dictionary
+def fake_optimal_temp():
+    return random.randint(20, 25)
 
-
-# Function to get forecast dictionary
-def get_forecast_dictionary():
-    weather_api_request = requests.get(WEATHER_DICT_REST_URI)
-    weather_api_dict = json.loads(weather_api_request.text)
-    weather_api_dict == weather_api_request.json()
-    forecast_dictionary = dict()
-    forecast_dictionary = weather_api_dict.copy()
-    return forecast_dictionary
 
 # Function to create incremented name for each meassurement
 
@@ -35,44 +24,75 @@ def create_new_pi_name():
     name = base_string + str(counter)
     return name
 
-# Function to create a list of all meassurements taken by all sensors
+# Function to create incremented name for each forecast
 
 
-def create_sensor_list():
+def create_new_forecast_name():
+    base_string = 'forecast'
+    counter = 1
+    name = base_string + str(counter)
+    return name
+
+
+# Function to create a list of forecasts, from objects
+
+
+def create_forecast_list(datetime_hours_from_now):
+    weather_api_request = requests.get(WEATHER_REST_URI)
+    weather_api_list = json.loads(weather_api_request.text)
+    weather_api_list == weather_api_request.json()
+    forecast_list = list()
+    for element in weather_api_list:
+        datetime_string = element['dt_txt']
+        datetime_object = datetime.strptime(
+            datetime_string, '%Y-%m-%d %H:%M:%S')
+        forecast_object = create_new_forecast_name()
+        forecast_object = WeatherData.create_weatherdata(
+            element['main']['temp'], datetime_object, element['clouds']['all'])
+        if datetime_object <= datetime_hours_from_now:
+            forecast_list.append(forecast_object)
+    return forecast_list
+
+
+# Function to create a list of meassurements, from objects, taken by all sensors
+
+# Filter on inDoor as well???
+def create_sensor_list(MAC_Address=None, datetime_start=datetime(2000, 1, 1), datetime_end=datetime(3000, 1, 1)):
     sensor_api_request = requests.get(SENSOR_REST_URI)
     sensor_api_list = json.loads(sensor_api_request.text)
     sensor_api_list == sensor_api_request.json()
     pi_sensor_list = list()
     for element in sensor_api_list:
         # Fix inserted "T" in timestamp, remove whitespace from location, round temperature
-        time_string_with_T = element['timestamp']
-        time_string = time_string_with_T.replace('T', ' ')
-        # location_string_with_whitespace = element['location']
-        # location_string = location_string_with_whitespace.strip()
+        datetime_string_with_T = element['timestamp']
+        datetime_string = datetime_string_with_T.replace('T', ' ')
+        datetime_object = datetime.strptime(
+            datetime_string, '%Y-%m-%d %H:%M:%S')
         location_string = element['location']
-
         if location_string.strip() == '':
             location_string = None
         else:
             location_string.strip()
         too_long_temperature = element['temperature']
         temperature_with_2_decimals = round(too_long_temperature, 2)
-        # Create PiData object, add to list
-        name = create_new_pi_name()
-        name = PiData.create_pidata(element['id'], temperature_with_2_decimals,
-                                    location_string, element['inDoor'],
-                                    time_string)
-        pi_sensor_list.append(name)
+        # Create PiData object, with API data
+        pidata_object = create_new_pi_name()
+        pidata_object = PiData.create_pidata(element['id'], temperature_with_2_decimals,
+                                             location_string, element['inDoor'],
+                                             datetime_object)
+        if MAC_Address != None:
+            if pidata_object.id == MAC_Address and datetime_start <= datetime_object and datetime_end > datetime_object:
+                pi_sensor_list.append(pidata_object)
+        else:
+            if datetime_start <= datetime_object and datetime_end > datetime_object:
+                pi_sensor_list.append(pidata_object)
     return pi_sensor_list
 
 
 # Test of formatting
-sensor_list = create_sensor_list()
+sensor_list = create_sensor_list(
+    MAC_Address='b8:27:eb:94:aa:a3', datetime_start=datetime(2018, 12, 7, 12, 17, 55))
 print(len(sensor_list))
 for element in sensor_list:
     # PiData "ToString()"
     print(PiData.__str__(element))
-
-
-def fake_optimal_temp():
-    return random.randint(20, 24)
