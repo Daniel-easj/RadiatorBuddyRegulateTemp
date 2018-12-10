@@ -11,8 +11,8 @@ SENSOR_REST_URI = 'https://radiatorbuddy.azurewebsites.net/api/sensorsdata'
 # Function to fake optimal temp until real optimal temp can be gathered
 
 
-def fake_optimal_temp():
-    return random.randint(20, 25)
+def fake_temp(minimum_number, maximum_number):
+    return random.randint(minimum_number, maximum_number)
 
 
 # Function to create incremented name for each meassurement
@@ -90,8 +90,7 @@ def create_sensor_list(MAC_Address=None, datetime_start=datetime(2000, 1, 1), da
 
 
 # Test of formatting
-sensor_list = create_sensor_list(
-    MAC_Address='b8:27:eb:94:aa:a3', datetime_start=datetime(2018, 12, 7, 12, 17, 55))
+sensor_list = create_sensor_list()
 print(len(sensor_list))
 for element in sensor_list:
     # PiData "ToString()"
